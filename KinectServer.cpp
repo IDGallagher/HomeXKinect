@@ -20,7 +20,7 @@ with the Kinect 3D Video Capture Project; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 02111-1307 USA
 ***********************************************************************/
-
+#define VERBOSE2
 #include "KinectServer.h"
 
 #include <string.h>
@@ -52,15 +52,22 @@ Methods of class KinectServer::CameraState:
 
 void KinectServer::CameraState::colorStreamingCallback(const Kinect::FrameBuffer& frame)
 	{
-	/* Pass the frame to the color compressor: */
-	colorCompressor->writeFrame(frame);
+	#ifdef VERBOSE2
+		std::cout << cameraIndex << " Got color frame " << colorFrameIndex << std::endl;
+	#endif
 	
-	/* Store the compressed frame data in the color frame triple buffer: */
-	CompressedFrame& compressedFrame=colorFrames.startNewValue();
-	compressedFrame.index=colorFrameIndex;
-	compressedFrame.timeStamp=frame.timeStamp;
-	colorFile.storeBuffers(compressedFrame.data);
-	colorFrames.postNewValue();
+	if(colorFrameIndex % 2 == 0) {
+	//if(1){
+		/* Pass the frame to the color compressor: */
+		colorCompressor->writeFrame(frame);
+		//return;
+		/* Store the compressed frame data in the color frame triple buffer: */
+		CompressedFrame& compressedFrame=colorFrames.startNewValue();
+		compressedFrame.index=colorFrameIndex;
+		compressedFrame.timeStamp=frame.timeStamp;
+		colorFile.storeBuffers(compressedFrame.data);
+		colorFrames.postNewValue();
+	}
 	++colorFrameIndex;
 	
 	/* Notify the run loop: */
@@ -71,15 +78,23 @@ void KinectServer::CameraState::colorStreamingCallback(const Kinect::FrameBuffer
 
 void KinectServer::CameraState::depthStreamingCallback(const Kinect::FrameBuffer& frame)
 	{
-	/* Pass the frame to the depth compressor: */
-	depthCompressor->writeFrame(frame);
+	#ifdef VERBOSE2
+	//	std::cout << cameraIndex << " Got depth frame " << depthFrameIndex << std::endl;
+	#endif
 	
-	/* Store the compressed frame data in the depth frame triple buffer: */
-	CompressedFrame& compressedFrame=depthFrames.startNewValue();
-	compressedFrame.index=depthFrameIndex;
-	compressedFrame.timeStamp=frame.timeStamp;
-	depthFile.storeBuffers(compressedFrame.data);
-	depthFrames.postNewValue();
+	//return;
+	if(depthFrameIndex % 2 == 0) {
+	//if(1){
+		/* Pass the frame to the depth compressor: */
+		depthCompressor->writeFrame(frame);
+
+		/* Store the compressed frame data in the depth frame triple buffer: */
+		CompressedFrame& compressedFrame=depthFrames.startNewValue();
+		compressedFrame.index=depthFrameIndex;
+		compressedFrame.timeStamp=frame.timeStamp;
+		depthFile.storeBuffers(compressedFrame.data);
+		depthFrames.postNewValue();
+	}
 	++depthFrameIndex;
 	
 	/* Notify the run loop: */
@@ -231,7 +246,7 @@ void KinectServer::newFrameCallback(void)
 		if(!cameraStates[cameraIndex]->hasSentDepthFrame&&cameraStates[cameraIndex]->depthFrames.lockNewValue())
 			{
 			#ifdef VERBOSE2
-			std::cout<<" depth "<<cameraIndex<<", "<<cameraStates[cameraIndex]->depthFrames.getLockedValue().index<<", "<<cameraStates[cameraIndex]->depthFrames.getLockedValue().timeStamp<<';';
+			std::cout<<" depth "<<cameraIndex<<", "<<cameraStates[cameraIndex]->depthFrames.getLockedValue().index<<", "<<cameraStates[cameraIndex]->depthFrames.getLockedValue().timeStamp<<std::endl;
 			#endif
 			
 			/* Send the camera's new depth frame to all connected clients: */
@@ -273,7 +288,7 @@ void KinectServer::newFrameCallback(void)
 		if(!cameraStates[cameraIndex]->hasSentColorFrame&&cameraStates[cameraIndex]->colorFrames.lockNewValue())
 			{
 			#ifdef VERBOSE2
-			std::cout<<" color "<<cameraIndex<<", "<<cameraStates[cameraIndex]->colorFrames.getLockedValue().index<<", "<<cameraStates[cameraIndex]->colorFrames.getLockedValue().timeStamp<<';';
+			std::cout<<" color "<<cameraIndex<<", "<<cameraStates[cameraIndex]->colorFrames.getLockedValue().index<<", "<<cameraStates[cameraIndex]->colorFrames.getLockedValue().timeStamp<<std::endl;
 			#endif
 			
 			/* Send the camera's new color frame to all connected clients: */
@@ -324,8 +339,8 @@ void KinectServer::newFrameCallback(void)
 		numMissingDepthFrames=numCameras;
 		
 		#ifdef VERBOSE2
-		std::cout<<std::endl;
-		std::cout<<"Meta frame "<<metaFrameIndex;
+		//std::cout<<std::endl;
+		std::cout<<"Meta frame "<<metaFrameIndex<<std::endl;
 		#endif
 		}
 	}
@@ -620,7 +635,7 @@ void KinectServer::run(void)
 		cameraStates[i]->startStreaming(timeBase);
 	
 	#ifdef VERBOSE2
-	std::cout<<"Meta frame "<<metaFrameIndex;
+	std::cout<<"Meta frame "<<metaFrameIndex<<std::endl;
 	#endif
 	
 	/* Run the main loop and dispatch events until stopped: */

@@ -45,7 +45,7 @@ endif
 # The following code selects a reasonable choice based on whether the
 # local OpenGL supports the GL_EXT_gpu_shader4 extension required by
 # the Kinect::Projector2 vertex shader-based projector.
-PROJECTORTYPE=0
+KINECT_PROJECTORTYPE = 1
 ifneq ($(strip $(shell glxinfo | grep GL_EXT_gpu_shader4)),)
   KINECT_PROJECTORTYPE = 1
 endif

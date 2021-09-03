@@ -264,7 +264,7 @@ void CameraV2::startStreaming(FrameSource::StreamingCallback* newColorStreamingC
 	if(newColorStreamingCallback!=0)
 		{
 		/* Set up a bulk transfer pool to receive color data: */
-		colorTransfers=new USB::TransferPool(200,0x8000); // Allocate 80 extra buffers to prevent underrun
+		colorTransfers=new USB::TransferPool(400,0x8000); // Allocate 80 extra buffers to prevent underrun
 		
 		/* Set up the color image processing pipeline: */
 		colorTransferCallback=colorStreamReader->startStreaming(colorTransfers,newColorStreamingCallback);

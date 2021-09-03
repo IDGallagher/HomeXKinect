@@ -33,9 +33,12 @@ Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 #include <Video/OggPage.h>
 #include <Video/TheoraInfo.h>
 #include <Video/TheoraComment.h>
+#include <chrono>
+#include <iostream>
 #endif
 #include <Kinect/FrameBuffer.h>
 #include <Kinect/FrameSource.h>
+#include <thread>
 
 namespace Kinect {
 
@@ -122,9 +125,16 @@ size_t ColorFrameWriter::writeFrame(const FrameBuffer& frame)
 	tempFrame.start=const_cast<FrameSource::ColorComponent*>(frame.getData<FrameSource::ColorComponent>()); // It's OK; Theora won't touch the frame, but has an API failure
 	imageExtractor->extractYpCbCr420(&tempFrame,theoraFrame.planes[0].data,theoraFrame.planes[0].stride,theoraFrame.planes[1].data,theoraFrame.planes[1].stride,theoraFrame.planes[2].data,theoraFrame.planes[2].stride);
 	
-	/* Feed the converted Y'CbCr 4:2:0 frame to the Theora encoder: */
-	theoraEncoder.encodeFrame(theoraFrame);
+	// /* Feed the converted Y'CbCr 4:2:0 frame to the Theora encoder: */
 	
+	//auto t1 = std::chrono::high_resolution_clock::now();
+	theoraEncoder.encodeFrame(theoraFrame);
+	//using namespace std::chrono_literals;
+    //std::this_thread::sleep_for(20ms);
+	//auto t2 = std::chrono::high_resolution_clock::now();
+	
+	//std::chrono::duration<double, std::milli> ms_double = t2 - t1;
+	//std::cout << ms_double.count() << "ms" << std::endl;
 	/* Write all encoded Theora packets to the sink: */
 	Video::TheoraPacket packet;
 	while(theoraEncoder.emitPacket(packet))

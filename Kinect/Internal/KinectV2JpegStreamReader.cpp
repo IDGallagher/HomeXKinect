@@ -30,6 +30,8 @@ Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 #include <Misc/MessageLogger.h>
 #include <Kinect/FrameBuffer.h>
 #include <Kinect/CameraV2.h>
+#include <chrono>
+#include <thread>
 
 // DEBUGGING
 #include <iostream>
@@ -130,10 +132,16 @@ void* KinectV2JpegStreamReader::decompressionThreadMethod(void)
 	Threads::Thread::setCancelState(Threads::Thread::CANCEL_ENABLE);
 	// Threads::Thread::setCancelType(Threads::Thread::CANCEL_ASYNCHRONOUS);
 	
-	// unsigned int frameIndex=0;
+	
+	
+	
+	
+	
+	
 	FrameSource::Time now;
 	while(true)
 		{
+			auto t1 = std::chrono::high_resolution_clock::now();
 		while(true)
 			{
 			/* Wait for the transfer buffer starting a new image: */
@@ -178,7 +186,8 @@ void* KinectV2JpegStreamReader::decompressionThreadMethod(void)
 		// std::cout<<"Image's color space: "<<decompressor.jpeg_color_space<<", selected output color space: "<<decompressor.out_color_space<<std::endl;
 		
 		jpeg_start_decompress(&decompressor);
-		
+		//using namespace std::chrono_literals;
+    	//std::this_thread::sleep_for(20ms);
 		/* Create a frame buffer to hold the decompressed image: */
 		FrameBuffer decompressedFrame(decompressor.output_width,decompressor.output_height,decompressor.output_height*decompressor.output_width*sizeof(FrameSource::ColorPixel));
 		
@@ -219,6 +228,10 @@ void* KinectV2JpegStreamReader::decompressionThreadMethod(void)
 		sourceManager.bytes_in_buffer=0;
 		sourceManager.next_input_byte=0;
 		
+		auto t2 = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> ms_double = t2 - t1;
+		std::cout << ms_double.count() << "ms" << std::endl;
+
 		if(!error)
 			{
 			/* Call the callback: */

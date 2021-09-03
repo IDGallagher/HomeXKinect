@@ -27,6 +27,8 @@ Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 #include <Misc/ConfigurationFile.h>
 #include <IO/OpenFile.h>
 #include <Kinect/Internal/Config.h>
+#include <pthread.h>
+
 
 #include "KinectServer.h"
 

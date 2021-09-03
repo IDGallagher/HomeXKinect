@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+/o/g++-3.g0.O3/Kinect/Renderer.o
+/bin/*
+/.vscode/settings.json
+*.g++-3.so.3.7
