@@ -85,6 +85,7 @@ class KinectServer
 		IO::VariableMemoryFile::BufferChain colorHeaders; // Write buffer containing the color compressor's header data
 		unsigned int colorFrameIndex; // Sequential frame index for color frames
 		Threads::TripleBuffer<CompressedFrame> colorFrames; // Triple buffer of compressed color frames
+		Threads::TripleBuffer<Kinect::FrameBuffer> rawColorFrames;
 		bool hasSentColorFrame; // Flag whether the camera has sent a color frame as part of the current meta-frame
 		
 		IO::VariableMemoryFile depthFile; // In-memory file to receive compressed depth frame data

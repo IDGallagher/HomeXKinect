@@ -56,19 +56,20 @@ void KinectServer::CameraState::colorStreamingCallback(const Kinect::FrameBuffer
 		std::cout << cameraIndex << " Got color frame " << colorFrameIndex << std::endl;
 	#endif
 	
-	if(colorFrameIndex % 2 == 0) {
-	//if(1){
+	//if(colorFrameIndex % 2 == 0) {
+	if(1){
 		/* Pass the frame to the color compressor: */
-		colorCompressor->writeFrame(frame);
+		//colorCompressor->writeFrame(frame);
 		//return;
 		/* Store the compressed frame data in the color frame triple buffer: */
-		CompressedFrame& compressedFrame=colorFrames.startNewValue();
-		compressedFrame.index=colorFrameIndex;
-		compressedFrame.timeStamp=frame.timeStamp;
-		colorFile.storeBuffers(compressedFrame.data);
-		colorFrames.postNewValue();
+		rawColorFrames.postNewValue(frame);
+		// CompressedFrame& compressedFrame=colorFrames.startNewValue();
+		// compressedFrame.index=colorFrameIndex;
+		// compressedFrame.timeStamp=frame.timeStamp;
+		// colorFile.storeBuffers(compressedFrame.data);
+		// colorFrames.postNewValue();
 	}
-	++colorFrameIndex;
+	
 	
 	/* Notify the run loop: */
 	Misc::UInt32 frameIndex=cameraIndex*2U;
@@ -83,8 +84,8 @@ void KinectServer::CameraState::depthStreamingCallback(const Kinect::FrameBuffer
 	#endif
 	
 	//return;
-	if(depthFrameIndex % 2 == 0) {
-	//if(1){
+	//if(depthFrameIndex % 2 == 0) {
+	if(1){
 		/* Pass the frame to the depth compressor: */
 		depthCompressor->writeFrame(frame);
 
@@ -285,10 +286,17 @@ void KinectServer::newFrameCallback(void)
 	else // New frame is a color frame
 		{
 		/* Check if the camera has not yet sent a color frame in the current meta frame: */
-		if(!cameraStates[cameraIndex]->hasSentColorFrame&&cameraStates[cameraIndex]->colorFrames.lockNewValue())
+		if(!cameraStates[cameraIndex]->hasSentColorFrame&&cameraStates[cameraIndex]->rawColorFrames.lockNewValue())
 			{
+				cameraStates[cameraIndex]->colorCompressor->writeFrame(cameraStates[cameraIndex]->rawColorFrames.getLockedValue());
+				KinectServer::CameraState::CompressedFrame compressedFrame = KinectServer::CameraState::CompressedFrame();
+				compressedFrame.index = cameraStates[cameraIndex]->colorFrameIndex;
+				compressedFrame.timeStamp = cameraStates[cameraIndex]->rawColorFrames.getLockedValue().timeStamp;
+				cameraStates[cameraIndex]->colorFile.storeBuffers(compressedFrame.data);
+				++cameraStates[cameraIndex]->colorFrameIndex;
+
 			#ifdef VERBOSE2
-			std::cout<<" color "<<cameraIndex<<", "<<cameraStates[cameraIndex]->colorFrames.getLockedValue().index<<", "<<cameraStates[cameraIndex]->colorFrames.getLockedValue().timeStamp<<std::endl;
+			std::cout<<" color "<<cameraIndex<<", "<<compressedFrame.index<<", "<<compressedFrame.timeStamp<<std::endl;
 			#endif
 			
 			/* Send the camera's new color frame to all connected clients: */
@@ -302,7 +310,7 @@ void KinectServer::newFrameCallback(void)
 						(*csIt)->pipe.write<Misc::UInt32>(frameIndex);
 						
 						/* Write the compressed color frame: */
-						cameraStates[cameraIndex]->colorFrames.getLockedValue().data.writeToSink((*csIt)->pipe);
+						compressedFrame.data.writeToSink((*csIt)->pipe);
 						(*csIt)->pipe.flush();
 						}
 					catch(const std::runtime_error& err)
